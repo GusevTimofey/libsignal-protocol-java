@@ -9,10 +9,10 @@ final class HacGOSTR3411_2012_256 {
     val kXorOpad: Array[Byte] = key.map(_ ^ 0x36)
     val kXorIpad: Array[Byte] = key.map(_ ^ 0x5C)
 
-    val orLeftRes: Array[Byte] = kXorIpad.zip(input).map { case (b1, b2) => (b1 | b2).toByte }
+    val orLeftRes: Array[Byte] = kXorIpad.appendedAll(input)
     val orLeftResHash: Array[Byte] = hash(orLeftRes).array
 
-    val leftOrRight = kXorOpad.zip(orLeftResHash).map { case (b1, b2) => (b1 | b2).toByte }
+    val leftOrRight = kXorOpad.appendedAll(orLeftResHash)
 
     hash(leftOrRight).array
   }

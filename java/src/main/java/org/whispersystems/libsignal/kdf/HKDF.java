@@ -32,7 +32,7 @@ public abstract class HKDF {
 
   public byte[] deriveSecrets(byte[] inputKeyMaterial, byte[] salt, byte[] info, int outputLength) {
     byte[] prk = extract(salt, inputKeyMaterial);
-    return expand(prk, info, outputLength);
+    return expand(prk, info, outputLength, salt);
   }
 
   private byte[] extract(byte[] salt, byte[] inputKeyMaterial) {
@@ -44,33 +44,37 @@ public abstract class HKDF {
     }
   }
 
-  private byte[] expand(byte[] prk, byte[] info, int outputSize) {
+  private byte[] expand(byte[] prk, byte[] info, int outputSize, byte[] salt) {
     try {
       int                   iterations     = (int) Math.ceil((double) outputSize / (double) HASH_OUTPUT_SIZE);
-      byte[]                mixin          = new byte[0];
       ByteArrayOutputStream results        = new ByteArrayOutputStream();
       int                   remainingBytes = outputSize;
 
       for (int i= getIterationStartOffset();i<iterations + getIterationStartOffset();i++) {
         HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
 
-        List<Byte> byteList = Bytes.asList(mixin);
+        byte one = 0x01;
+        byte zero = 0x00;
 
-        List<Byte> list = new ArrayList<>(byteList);
+        List<Byte> list = new ArrayList<>();
+
+        list.add(one);
 
         if (info != null) {
           List<Byte> byteListL = Bytes.asList(info);
           list.addAll(byteListL);
         }
 
-        list.add((byte)i);
+        list.add(zero);
+        list.addAll(Bytes.asList(salt));
+        list.add(one);
+        list.add(zero);
 
         byte[] stepResult = mac1.makeHmac(prk, Bytes.toArray(list));
         int    stepSize   = Math.min(remainingBytes, stepResult.length);
 
         results.write(stepResult, 0, stepSize);
 
-        mixin          = stepResult;
         remainingBytes -= stepSize;
       }
 
