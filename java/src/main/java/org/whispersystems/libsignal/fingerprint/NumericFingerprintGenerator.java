@@ -5,13 +5,12 @@
  */
 package org.whispersystems.libsignal.fingerprint;
 
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.util.ByteUtil;
 import org.whispersystems.libsignal.util.IdentityKeyComparator;
 
 import java.io.ByteArrayOutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -103,18 +102,20 @@ public class NumericFingerprintGenerator implements FingerprintGenerator {
 
   private byte[] getFingerprint(int iterations, byte[] stableIdentifier, List<IdentityKey> unsortedIdentityKeys) {
     try {
-      MessageDigest digest    = MessageDigest.getInstance("SHA-512");
+      GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
+
       byte[]        publicKey = getLogicalKeyBytes(unsortedIdentityKeys);
       byte[]        hash      = ByteUtil.combine(ByteUtil.shortToByteArray(FINGERPRINT_VERSION),
                                                  publicKey, stableIdentifier);
 
       for (int i=0;i<iterations;i++) {
-        digest.update(hash);
-        hash = digest.digest(publicKey);
+        digest.update(hash, 0, hash.length);
+        digest.update(publicKey, 0, publicKey.length);
+        digest.doFinal(hash, 0);
       }
 
       return hash;
-    } catch (NoSuchAlgorithmException e) {
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

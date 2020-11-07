@@ -414,6 +414,7 @@ public class SessionCipher {
 
   private Cipher getCipher(int mode, SecretKeySpec key, IvParameterSpec iv) {
     try {
+
       Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
       cipher.init(mode, key, iv);
       return cipher;
