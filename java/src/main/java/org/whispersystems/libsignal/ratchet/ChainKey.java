@@ -6,14 +6,12 @@
 package org.whispersystems.libsignal.ratchet;
 
 
+import com.google.common.primitives.Bytes;
 import org.whispersystems.libsignal.kdf.DerivedMessageSecrets;
 import org.whispersystems.libsignal.kdf.HKDF;
+import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
 
 public class ChainKey {
 
@@ -53,11 +51,11 @@ public class ChainKey {
 
   private byte[] getBaseMaterial(byte[] seed) {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(key, "HmacSHA256"));
+      HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
+      List<Byte> list = Bytes.asList(seed);
 
-      return mac.doFinal(seed);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      return mac1.makeHmac(key, Bytes.toArray(list));
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

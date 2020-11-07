@@ -5,11 +5,7 @@
  */
 package org.whispersystems.libsignal.groups.ratchet;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
 
 /**
  * Each SenderKey is a "chain" of keys, each derived from the previous.
@@ -52,11 +48,9 @@ public class SenderChainKey {
 
   private byte[] getDerivative(byte[] seed, byte[] key) {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(key, "HmacSHA256"));
-
-      return mac.doFinal(seed);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      HacGOSTR3411_2012_256 mac = new HacGOSTR3411_2012_256();
+      return mac.makeHmac(key, seed);
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

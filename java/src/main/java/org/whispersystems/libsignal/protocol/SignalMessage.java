@@ -5,23 +5,22 @@
  */
 package org.whispersystems.libsignal.protocol;
 
+import com.google.common.primitives.Bytes;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidMessageException;
 import org.whispersystems.libsignal.LegacyMessageException;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
+import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
 import org.whispersystems.libsignal.util.ByteUtil;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-
-import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.text.ParseException;
+import java.util.List;
 
 public class SignalMessage implements CiphertextMessage {
 
@@ -125,15 +124,14 @@ public class SignalMessage implements CiphertextMessage {
                         SecretKeySpec macKey, byte[] serialized)
   {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(macKey);
+      HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
+      List<Byte> list = Bytes.asList(senderIdentityKey.getPublicKey().serialize());
+      list.addAll(Bytes.asList(receiverIdentityKey.getPublicKey().serialize()));
+      list.addAll(Bytes.asList(serialized));
 
-      mac.update(senderIdentityKey.getPublicKey().serialize());
-      mac.update(receiverIdentityKey.getPublicKey().serialize());
-
-      byte[] fullMac = mac.doFinal(serialized);
+      byte[] fullMac = mac1.makeHmac(macKey.getEncoded(), Bytes.toArray(list));
       return ByteUtil.trim(fullMac, MAC_LENGTH);
-    } catch (NoSuchAlgorithmException | java.security.InvalidKeyException e) {
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

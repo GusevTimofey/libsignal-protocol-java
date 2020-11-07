@@ -6,12 +6,12 @@
 
 package org.whispersystems.libsignal.kdf;
 
-import java.io.ByteArrayOutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import com.google.common.primitives.Bytes;
+import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class HKDF {
 
@@ -37,10 +37,9 @@ public abstract class HKDF {
 
   private byte[] extract(byte[] salt, byte[] inputKeyMaterial) {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(salt, "HmacSHA256"));
-      return mac.doFinal(inputKeyMaterial);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      HacGOSTR3411_2012_256 mac = new HacGOSTR3411_2012_256();
+      return mac.makeHmac(salt, inputKeyMaterial);
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }
@@ -53,16 +52,20 @@ public abstract class HKDF {
       int                   remainingBytes = outputSize;
 
       for (int i= getIterationStartOffset();i<iterations + getIterationStartOffset();i++) {
-        Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(new SecretKeySpec(prk, "HmacSHA256"));
+        HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
 
-        mac.update(mixin);
+        List<Byte> byteList = Bytes.asList(mixin);
+
+        List<Byte> list = new ArrayList<>(byteList);
+
         if (info != null) {
-          mac.update(info);
+          List<Byte> byteListL = Bytes.asList(info);
+          list.addAll(byteListL);
         }
-        mac.update((byte)i);
 
-        byte[] stepResult = mac.doFinal();
+        list.add((byte)i);
+
+        byte[] stepResult = mac1.makeHmac(prk, Bytes.toArray(list));
         int    stepSize   = Math.min(remainingBytes, stepResult.length);
 
         results.write(stepResult, 0, stepSize);
@@ -72,7 +75,7 @@ public abstract class HKDF {
       }
 
       return results.toByteArray();
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }
