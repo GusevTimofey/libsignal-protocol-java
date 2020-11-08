@@ -6,12 +6,15 @@
 package org.whispersystems.libsignal.ratchet;
 
 
-import com.google.common.primitives.Bytes;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.kdf.DerivedMessageSecrets;
 import org.whispersystems.libsignal.kdf.HKDF;
-import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
 
-import java.util.List;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 public class ChainKey {
 
@@ -51,10 +54,12 @@ public class ChainKey {
 
   private byte[] getBaseMaterial(byte[] seed) {
     try {
-      HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
-      List<Byte> list = Bytes.asList(seed);
-
-      return mac1.makeHmac(key, Bytes.toArray(list));
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(key));
+      mac.update(seed, 0, seed.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return result;
     } catch (Throwable e) {
       throw new AssertionError(e);
     }

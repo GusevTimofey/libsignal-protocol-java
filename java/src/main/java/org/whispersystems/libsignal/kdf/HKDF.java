@@ -6,12 +6,14 @@
 
 package org.whispersystems.libsignal.kdf;
 
-import com.google.common.primitives.Bytes;
-import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class HKDF {
 
@@ -32,49 +34,48 @@ public abstract class HKDF {
 
   public byte[] deriveSecrets(byte[] inputKeyMaterial, byte[] salt, byte[] info, int outputLength) {
     byte[] prk = extract(salt, inputKeyMaterial);
-    return expand(prk, info, outputLength, salt);
+    return expand(prk, info, outputLength);
   }
 
   private byte[] extract(byte[] salt, byte[] inputKeyMaterial) {
     try {
-      HacGOSTR3411_2012_256 mac = new HacGOSTR3411_2012_256();
-      return mac.makeHmac(salt, inputKeyMaterial);
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(salt));
+      mac.update(inputKeyMaterial, 0, inputKeyMaterial.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return result;
     } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }
 
-  private byte[] expand(byte[] prk, byte[] info, int outputSize, byte[] salt) {
+  private byte[] expand(byte[] prk, byte[] info, int outputSize) {
     try {
       int                   iterations     = (int) Math.ceil((double) outputSize / (double) HASH_OUTPUT_SIZE);
       ByteArrayOutputStream results        = new ByteArrayOutputStream();
+      byte[]                mixin          = new byte[0];
       int                   remainingBytes = outputSize;
 
       for (int i= getIterationStartOffset();i<iterations + getIterationStartOffset();i++) {
-        HacGOSTR3411_2012_256 mac1 = new HacGOSTR3411_2012_256();
-
-        byte one = 0x01;
-        byte zero = 0x00;
-
-        List<Byte> list = new ArrayList<>();
-
-        list.add(one);
+        HMac mac = new HMac(new GOST3411_2012_256Digest());
+        mac.init(new KeyParameter(prk));
+        mac.update(mixin, 0, mixin.length);
 
         if (info != null) {
-          List<Byte> byteListL = Bytes.asList(info);
-          list.addAll(byteListL);
+          mac.update(info, 0, info.length);
         }
 
-        list.add(zero);
-        list.addAll(Bytes.asList(salt));
-        list.add(one);
-        list.add(zero);
+        mac.update((byte)i);
 
-        byte[] stepResult = mac1.makeHmac(prk, Bytes.toArray(list));
+        byte[] stepResult = new byte[32];
+        mac.doFinal(stepResult, 0);
+
         int    stepSize   = Math.min(remainingBytes, stepResult.length);
 
         results.write(stepResult, 0, stepSize);
 
+        mixin          = stepResult;
         remainingBytes -= stepSize;
       }
 

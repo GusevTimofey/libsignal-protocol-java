@@ -5,7 +5,13 @@
  */
 package org.whispersystems.libsignal.groups.ratchet;
 
-import org.whispersystems.libsignal.my.own.HacGOSTR3411_2012_256;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Each SenderKey is a "chain" of keys, each derived from the previous.
@@ -48,8 +54,12 @@ public class SenderChainKey {
 
   private byte[] getDerivative(byte[] seed, byte[] key) {
     try {
-      HacGOSTR3411_2012_256 mac = new HacGOSTR3411_2012_256();
-      return mac.makeHmac(key, seed);
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(key));
+      mac.update(seed, 0, seed.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return result;
     } catch (Throwable e) {
       throw new AssertionError(e);
     }

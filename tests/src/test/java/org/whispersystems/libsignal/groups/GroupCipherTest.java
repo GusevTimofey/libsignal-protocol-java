@@ -1,7 +1,10 @@
 package org.whispersystems.libsignal.groups;
 
+import com.google.common.primitives.Ints;
 import junit.framework.TestCase;
 
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 import org.whispersystems.libsignal.SignalProtocolAddress;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -277,10 +280,9 @@ public class GroupCipherTest extends TestCase {
 
 
   private int randomInt() {
-    try {
-      return SecureRandom.getInstance("SHA1PRNG").nextInt(Integer.MAX_VALUE);
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+    DigestRandomGenerator rng = new DigestRandomGenerator(new GOST3411_2012_256Digest());
+    byte[] result = new byte[32];
+    rng.nextBytes(result);
+    return Ints.fromByteArray(result);
   }
 }

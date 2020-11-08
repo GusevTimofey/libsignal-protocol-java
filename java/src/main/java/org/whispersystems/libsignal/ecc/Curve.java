@@ -5,6 +5,10 @@
  */
 package org.whispersystems.libsignal.ecc;
 
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.GOST3410KeyPairGenerator;
+import org.bouncycastle.crypto.params.GOST3410PrivateKeyParameters;
+import org.bouncycastle.crypto.params.GOST3410PublicKeyParameters;
 import org.whispersystems.curve25519.Curve25519;
 import org.whispersystems.curve25519.Curve25519KeyPair;
 import org.whispersystems.curve25519.VrfSignatureVerificationFailedException;
@@ -21,10 +25,13 @@ public class Curve {
   }
 
   public static ECKeyPair generateKeyPair() {
-    Curve25519KeyPair keyPair = Curve25519.getInstance(BEST).generateKeyPair();
+    AsymmetricCipherKeyPair keyPair = new GOST3410KeyPairGenerator().generateKeyPair();
 
-    return new ECKeyPair(new DjbECPublicKey(keyPair.getPublicKey()),
-                         new DjbECPrivateKey(keyPair.getPrivateKey()));
+    GOST3410PublicKeyParameters pubk = (GOST3410PublicKeyParameters) keyPair.getPublic();
+    GOST3410PrivateKeyParameters privk = (GOST3410PrivateKeyParameters) keyPair.getPrivate();
+
+    return new ECKeyPair(new DjbECPublicKey(pubk.getY().toByteArray()),
+                         new DjbECPrivateKey(privk.getX().toByteArray()));
   }
 
   public static ECPublicKey decodePoint(byte[] bytes, int offset)
