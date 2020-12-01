@@ -25,13 +25,10 @@ public class Curve {
   }
 
   public static ECKeyPair generateKeyPair() {
-    AsymmetricCipherKeyPair keyPair = new GOST3410KeyPairGenerator().generateKeyPair();
+    Curve25519KeyPair keyPair = Curve25519.getInstance(BEST).generateKeyPair();
 
-    GOST3410PublicKeyParameters pubk = (GOST3410PublicKeyParameters) keyPair.getPublic();
-    GOST3410PrivateKeyParameters privk = (GOST3410PrivateKeyParameters) keyPair.getPrivate();
-
-    return new ECKeyPair(new DjbECPublicKey(pubk.getY().toByteArray()),
-                         new DjbECPrivateKey(privk.getX().toByteArray()));
+    return new ECKeyPair(new DjbECPublicKey(keyPair.getPublicKey()),
+            new DjbECPrivateKey(keyPair.getPrivateKey()));
   }
 
   public static ECPublicKey decodePoint(byte[] bytes, int offset)

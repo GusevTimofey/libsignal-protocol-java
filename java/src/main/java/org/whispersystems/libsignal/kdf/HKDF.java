@@ -46,11 +46,6 @@ public abstract class HKDF {
       mac.update(inputKeyMaterial, 0, inputKeyMaterial.length);
       byte[] result = new byte[32];
       mac.doFinal(result, 0);
-
-      System.out.println("=========");
-      System.out.println("THIS IS extract: " + Arrays.toString(result));
-      System.out.println("=========");
-
       return result;
     } catch (Throwable e) {
       throw new AssertionError(e);
@@ -78,15 +73,7 @@ public abstract class HKDF {
         byte[] stepResult = new byte[32];
         mac.doFinal(stepResult, 0);
 
-        System.out.println("=========");
-        System.out.println("This is expand. Step is:" + i +". Step result: " + Arrays.toString(stepResult));
-        System.out.println("=========");
-
         int    stepSize   = Math.min(remainingBytes, stepResult.length);
-
-        System.out.println("=========");
-        System.out.println("This is expand. Step size is:" + stepSize);
-        System.out.println("=========");
 
         results.write(stepResult, 0, stepSize);
 

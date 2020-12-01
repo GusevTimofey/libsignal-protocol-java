@@ -6,15 +6,13 @@
 package org.whispersystems.libsignal.fingerprint;
 
 import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.digests.GOST3411_2012_512Digest;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.util.ByteUtil;
 import org.whispersystems.libsignal.util.IdentityKeyComparator;
 
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class NumericFingerprintGenerator implements FingerprintGenerator {
 
@@ -102,7 +100,7 @@ public class NumericFingerprintGenerator implements FingerprintGenerator {
 
   private byte[] getFingerprint(int iterations, byte[] stableIdentifier, List<IdentityKey> unsortedIdentityKeys) {
     try {
-      GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
+      GOST3411_2012_512Digest digest = new GOST3411_2012_512Digest();
 
       byte[]        publicKey = getLogicalKeyBytes(unsortedIdentityKeys);
       byte[]        hash      = ByteUtil.combine(ByteUtil.shortToByteArray(FINGERPRINT_VERSION),
@@ -111,8 +109,12 @@ public class NumericFingerprintGenerator implements FingerprintGenerator {
       for (int i=0;i<iterations;i++) {
         digest.update(hash, 0, hash.length);
         digest.update(publicKey, 0, publicKey.length);
-        digest.doFinal(hash, 0);
+        byte[] result = new byte[64];
+        digest.doFinal(result, 0);
+        hash = result;
       }
+
+      System.out.println("This is hash result:" + hash.length);
 
       return hash;
     } catch (Throwable e) {
