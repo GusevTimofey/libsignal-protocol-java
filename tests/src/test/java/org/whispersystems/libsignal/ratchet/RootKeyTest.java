@@ -48,21 +48,9 @@ public class RootKeyTest extends TestCase {
                            (byte) 0x95, (byte) 0x55, (byte) 0xe8, (byte) 0x47, (byte) 0x57,
                            (byte) 0x70, (byte) 0x8a, (byte) 0x30};
 
-    byte[] nextRoot     = {(byte) 0xb1, (byte) 0x14, (byte) 0xf5, (byte) 0xde, (byte) 0x28,
-                           (byte) 0x01, (byte) 0x19, (byte) 0x85, (byte) 0xe6, (byte) 0xeb,
-                           (byte) 0xa2, (byte) 0x5d, (byte) 0x50, (byte) 0xe7, (byte) 0xec,
-                           (byte) 0x41, (byte) 0xa9, (byte) 0xb0, (byte) 0x2f, (byte) 0x56,
-                           (byte) 0x93, (byte) 0xc5, (byte) 0xc7, (byte) 0x88, (byte) 0xa6,
-                           (byte) 0x3a, (byte) 0x06, (byte) 0xd2, (byte) 0x12, (byte) 0xa2,
-                           (byte) 0xf7, (byte) 0x31};
+    byte[] nextRoot     = {34, 91, -83, 15, 67, -108, 94, 123, 88, -23, -10, -84, -37, -50, -8, -95, -21, -119, -111, 1, -43, 34, 87, 11, -52, 120, -24, 1, -57, 112, -97, -1};
 
-    byte[] nextChain    = {(byte) 0x9d, (byte) 0x7d, (byte) 0x24, (byte) 0x69, (byte) 0xbc,
-                           (byte) 0x9a, (byte) 0xe5, (byte) 0x3e, (byte) 0xe9, (byte) 0x80,
-                           (byte) 0x5a, (byte) 0xa3, (byte) 0x26, (byte) 0x4d, (byte) 0x24,
-                           (byte) 0x99, (byte) 0xa3, (byte) 0xac, (byte) 0xe8, (byte) 0x0f,
-                           (byte) 0x4c, (byte) 0xca, (byte) 0xe2, (byte) 0xda, (byte) 0x13,
-                           (byte) 0x43, (byte) 0x0c, (byte) 0x5c, (byte) 0x55, (byte) 0xb5,
-                           (byte) 0xca, (byte) 0x5f};
+    byte[] nextChain    = {-111, -118, 124, -32, -74, 24, -115, -16, -86, 48, 23, -100, 80, -16, -77, 119, 28, 104, 96, 30, 44, -59, -70, 5, -42, 101, 21, 49, -77, -99, 72, 111};
 
     ECPublicKey  alicePublicKey  = Curve.decodePoint(alicePublic, 0);
     ECPrivateKey alicePrivateKey = Curve.decodePrivatePoint(alicePrivate);

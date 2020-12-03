@@ -1,6 +1,7 @@
 package org.whispersystems.libsignal.devices;
 
 import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.digests.GOST3411_2012_512Digest;
 import org.whispersystems.libsignal.util.ByteArrayComparator;
 import org.whispersystems.libsignal.util.ByteUtil;
 
@@ -20,7 +21,7 @@ public class DeviceConsistencyCodeGenerator {
       ArrayList<DeviceConsistencySignature> sortedSignatures = new ArrayList<>(signatures);
       Collections.sort(sortedSignatures, new SignatureComparator());
 
-      GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
+      GOST3411_2012_512Digest digest = new GOST3411_2012_512Digest();
 
       byte[] codeVersion = ByteUtil.shortToByteArray(CODE_VERSION);
       byte[] commitmentBytes = commitment.toByteArray();
@@ -33,7 +34,7 @@ public class DeviceConsistencyCodeGenerator {
         digest.update(signatureBytes, 0, signatureBytes.length);
       }
 
-      byte[] hash = new byte[256];
+      byte[] hash = new byte[512];
 
       digest.doFinal(hash, 0);
 
