@@ -9,6 +9,7 @@ package org.whispersystems.libsignal.state;
 
 import com.google.protobuf.ByteString;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -27,6 +28,7 @@ import org.whispersystems.libsignal.state.StorageProtos.SessionStructure.Pending
 import org.whispersystems.libsignal.util.Pair;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.security.Security;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -283,7 +285,9 @@ public class SessionState {
       Chain.MessageKey messageKey = messageKeyIterator.next();
 
       if (messageKey.getIndex() == counter) {
-        result = new MessageKeys(new SecretKeySpec(messageKey.getCipherKey().toByteArray(), "AES"),
+        BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+        Security.addProvider(bouncyCastleProvider);
+        result = new MessageKeys(new SecretKeySpec(messageKey.getCipherKey().toByteArray(), "GOST3412-2015"),
                                  new SecretKeySpec(messageKey.getMacKey().toByteArray(), "HmacSHA256"),
                                  new IvParameterSpec(messageKey.getIv().toByteArray()),
                                  messageKey.getIndex());

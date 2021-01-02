@@ -6,8 +6,10 @@
 
 package org.whispersystems.libsignal.kdf;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.util.ByteUtil;
 
+import java.security.Security;
 import java.text.ParseException;
 
 import javax.crypto.spec.IvParameterSpec;
@@ -28,7 +30,9 @@ public class DerivedMessageSecrets {
     try {
       byte[][] keys = ByteUtil.split(okm, CIPHER_KEY_LENGTH, MAC_KEY_LENGTH, IV_LENGTH);
 
-      this.cipherKey = new SecretKeySpec(keys[0], "AES");
+      BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+      Security.addProvider(bouncyCastleProvider);
+      this.cipherKey = new SecretKeySpec(keys[0], "GOST3412-2015");
       this.macKey    = new SecretKeySpec(keys[1], "HmacSHA256");
       this.iv        = new IvParameterSpec(keys[2]);
     } catch (ParseException e) {

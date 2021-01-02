@@ -5,6 +5,7 @@
  */
 package org.whispersystems.libsignal.groups;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.DecryptionCallback;
 import org.whispersystems.libsignal.DuplicateMessageException;
 import org.whispersystems.libsignal.InvalidKeyIdException;
@@ -20,6 +21,7 @@ import org.whispersystems.libsignal.protocol.SenderKeyMessage;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -174,10 +176,12 @@ public class GroupCipher {
       throws InvalidMessageException
   {
     try {
+      BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+      Security.addProvider(bouncyCastleProvider);
       IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-      Cipher          cipher          = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      Cipher          cipher          = Cipher.getInstance("GOST3412-2015/CBC/PKCS5Padding");
 
-      cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"), ivParameterSpec);
+      cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "GOST3412-2015"), ivParameterSpec);
 
       return cipher.doFinal(ciphertext);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException | java.security.InvalidKeyException |
@@ -191,10 +195,12 @@ public class GroupCipher {
 
   private byte[] getCipherText(byte[] iv, byte[] key, byte[] plaintext) {
     try {
+      BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+      Security.addProvider(bouncyCastleProvider);
       IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
-      Cipher          cipher          = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      Cipher          cipher          = Cipher.getInstance("GOST3412-2015/CBC/PKCS5Padding");
 
-      cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), ivParameterSpec);
+      cipher.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "GOST3412-2015"), ivParameterSpec);
 
       return cipher.doFinal(plaintext);
     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidAlgorithmParameterException |

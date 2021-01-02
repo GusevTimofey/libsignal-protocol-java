@@ -5,6 +5,8 @@
  */
 package org.whispersystems.libsignal;
 
+import org.bouncycastle.jcajce.provider.symmetric.GOST3412_2015;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
@@ -27,6 +29,7 @@ import org.whispersystems.libsignal.util.guava.Optional;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -405,6 +408,7 @@ public class SessionCipher {
       throws InvalidMessageException
   {
     try {
+
       Cipher cipher = getCipher(Cipher.DECRYPT_MODE, messageKeys.getCipherKey(), messageKeys.getIv());
       return cipher.doFinal(cipherText);
     } catch (IllegalBlockSizeException | BadPaddingException e) {
@@ -414,8 +418,9 @@ public class SessionCipher {
 
   private Cipher getCipher(int mode, SecretKeySpec key, IvParameterSpec iv) {
     try {
-
-      Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+      BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+      Security.addProvider(bouncyCastleProvider);
+      Cipher cipher = Cipher.getInstance("GOST3412-2015/CBC/PKCS5Padding");
       cipher.init(mode, key, iv);
       return cipher;
     } catch (NoSuchAlgorithmException | NoSuchPaddingException | java.security.InvalidKeyException |
