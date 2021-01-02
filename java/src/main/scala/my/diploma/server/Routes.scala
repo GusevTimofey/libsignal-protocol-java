@@ -26,17 +26,21 @@ object Routes {
     val routes: HttpRoutes[F] = logRoutes
 
     var preKeysBundle: List[PreKeyBundleForClient] = List.empty
-    var initialMessages: List[InitialMessage] = List.empty
-    var messagesForBob: List[String] = List.empty
-    var messagesForAlice: List[String] = List.empty
+    var initialMessages: List[InitialMessage]      = List.empty
+    var messagesForBob: List[String]               = List.empty
+    var messagesForAlice: List[String]             = List.empty
 
     def logRoutes =
-      Logger.httpRoutes(logHeaders = true, logBody = true, logAction = ((str: String) => Concurrent[F].delay(println(str))).some)(allRoutes)
+      Logger.httpRoutes(
+        logHeaders = true,
+        logBody    = true,
+        logAction  = ((str: String) => Concurrent[F].delay(println(str))).some
+      )(allRoutes)
 
     def allRoutes = HttpRoutes.of[F] {
       case r @ POST -> Root / "publishPreKeys" =>
         val rawHeader = r.headers.get(CaseInsensitiveString("preKeyBundle")).get.value
-        val bundle = parse(rawHeader).leftMap(throw _).merge.as[PreKeyBundleForClient].leftMap(throw _).merge
+        val bundle    = parse(rawHeader).leftMap(throw _).merge.as[PreKeyBundleForClient].leftMap(throw _).merge
         preKeysBundle ::= bundle
         println(s"Server got pre key bundle.")
         Concurrent[F].unit.map(_.asJson).flatMap(Ok(_))
@@ -45,7 +49,7 @@ object Routes {
         Ok(preKeysBundle.head.asJson)
       case r @ POST -> Root / "sendInitialMessage" =>
         println(s"Server got sendInitialMessage.")
-        val rawHeader = r.headers.get(CaseInsensitiveString("initialMessage")).get.value
+        val rawHeader      = r.headers.get(CaseInsensitiveString("initialMessage")).get.value
         val initialMessage = parse(rawHeader).leftMap(throw _).merge.as[InitialMessage].leftMap(throw _).merge
         initialMessages ::= initialMessage
         Concurrent[F].unit.map(_.asJson).flatMap(Ok(_))
@@ -77,5 +81,5 @@ object Routes {
         messagesForAlice = messagesForAlice.drop(1)
         Ok(msg.asJson)
     }
-}
+  }
 }

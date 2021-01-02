@@ -1,4 +1,5 @@
 package my.diploma.client.alice.services
+
 import cats.effect.{Sync, Timer}
 import my.diploma.common.MessagesClient
 import org.whispersystems.libsignal.state.{PreKeyBundle, SignedPreKeyRecord}
@@ -26,10 +27,11 @@ object Processor {
 
   final private class Impl[F[_]: Timer](messagesClient: MessagesClient[F])(implicit F: Sync[F]) extends Processor[F] {
 
-    val identityKeyPair  = KeyHelper.generateIdentityKeyPair
+    val identityKeyPair = KeyHelper.generateIdentityKeyPair
     val registrationId  = KeyHelper.generateRegistrationId(false)
-    val preKeys = KeyHelper.generatePreKeys(1, 1).asScala.toList
-    val signedPreKey: SignedPreKeyRecord  =
+    val preKeys         = KeyHelper.generatePreKeys(1, 1).asScala.toList
+
+    val signedPreKey: SignedPreKeyRecord =
       KeyHelper.generateSignedPreKey(identityKeyPair, 5)
 
     val aliceStore = new InMemorySignalProtocolStore(identityKeyPair, registrationId)
@@ -49,50 +51,37 @@ object Processor {
         aliceStore.getIdentityKeyPair.getPublicKey
       )
 
-    val BOB_ADDRESS  = new SignalProtocolAddress("+14151231234", 1)
+    val BOB_ADDRESS = new SignalProtocolAddress("+14151231234", 1)
 
     val aliceSessionBuilder = new SessionBuilder(aliceStore, BOB_ADDRESS)
 
     val aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS)
 
-    println(s"A: IK: ${preKeyBundle.getIdentityKey.getPublicKey.serialize().mkString("Array(", ", ", ")")}")
-
     def run: F[Unit] =
       for {
         bobsBundleForClient <- messagesClient.fetchPreKeyBundle //2
-        _ = println(s"B: B IK: ${bobsBundleForClient.IK.mkString("Array(", ", ", ")")}")
-
-        bobsBundle <- makeBobPreKeyBundle(bobsBundleForClient)
-        _ = println(s"B: IK: ${bobsBundle.getIdentityKey.serialize().mkString("Array(", ", ", ")")}")
-        _ <- F.delay(aliceSessionBuilder.process(bobsBundle))
-        messageForBob <- F.delay(aliceSessionCipher.encrypt("This is the initial message from Alice".getBytes()))
+        bobsBundle          <- makeBobPreKeyBundle(bobsBundleForClient)
+        _                   <- F.delay(aliceSessionBuilder.process(bobsBundle))
+        messageForBob       <- F.delay(aliceSessionCipher.encrypt("This is the initial message from Alice".getBytes()))
         initialMessage = InitialMessage(
-          PreKeyBundleForClient(
-            preKeyBundle.getRegistrationId,
-            preKeyBundle.getDeviceId,
-            preKeyBundle.getPreKey.serialize(),
-            preKeyBundle.getPreKeyId,
-            preKeyBundle.getSignedPreKeyId,
-            preKeyBundle.getSignedPreKey.serialize(),
-            preKeyBundle.getSignedPreKeySignature,
-            preKeyBundle.getIdentityKey.serialize()
-          ),
-          messageForBob.serialize()
-        )
+                           PreKeyBundleForClient(
+                             preKeyBundle.getRegistrationId,
+                             preKeyBundle.getDeviceId,
+                             preKeyBundle.getPreKey.serialize(),
+                             preKeyBundle.getPreKeyId,
+                             preKeyBundle.getSignedPreKeyId,
+                             preKeyBundle.getSignedPreKey.serialize(),
+                             preKeyBundle.getSignedPreKeySignature,
+                             preKeyBundle.getIdentityKey.serialize()
+                           ),
+                           messageForBob.serialize()
+                         )
         _ <- messagesClient.sendInitialMessage(initialMessage) //3
         _ <- communication
       } yield ()
 
-    def makeBobPreKeyBundle(preKeyBundleForClient: PreKeyBundleForClient): F[PreKeyBundle] = {
+    def makeBobPreKeyBundle(preKeyBundleForClient: PreKeyBundleForClient): F[PreKeyBundle] =
       F.delay {
-        val a = preKeyBundleForClient.IK
-        val a1 = new IdentityKey(preKeyBundleForClient.IK, 0)
-        println(s"AAA: ${a.mkString("Array(", ", ", ")")} ${a1.getPublicKey.serialize().mkString("Array(", ", ", ")")}")
-
-        val b= preKeyBundleForClient.preKeyPublic
-        val b1=  Curve.decodePoint(preKeyBundleForClient.preKeyPublic, 0)
-        println(s"BBB: ${b.mkString("Array(", ", ", ")")} ${b1.serialize().mkString("Array(", ", ", ")")}")
-
         new PreKeyBundle(
           preKeyBundleForClient.registrationId,
           preKeyBundleForClient.deviceId,
@@ -104,23 +93,23 @@ object Processor {
           new IdentityKey(preKeyBundleForClient.IK, 0)
         )
       }
-    }
 
     def communication: F[Unit] =
-      messagesClient.receiveMessageToAlice.map(new SignalMessage(_))
+      messagesClient.receiveMessageToAlice
+        .map(new SignalMessage(_))
         .flatMap { message =>
           F.delay(aliceSessionCipher.decrypt(message)).flatMap { decrypted =>
-            F.delay(println(s"Alice got new message from Bob: ${new String(decrypted)}"))
+            F.delay(println(s"[BOB]: ${new String(decrypted)}"))
           }
         }
         .flatTap { _ =>
-          val uniqueId = scala.util.Random.nextInt()
+          val uniqueId        = scala.util.Random.nextInt()
           val nextBobsMessage = s"This is the next Alice's message with unique id: $uniqueId"
-          F.delay(println(nextBobsMessage)) >>
+          F.delay(println(s"[ALICE]: $nextBobsMessage")) >>
           F.delay(aliceSessionCipher.encrypt(nextBobsMessage.getBytes()))
             .flatTap(_ => Timer[F].sleep(5.seconds))
             .flatMap(msg => messagesClient.sendMessageToBob(msg.serialize()))
         }
         .flatMap(_ => communication)
-}
+  }
 }

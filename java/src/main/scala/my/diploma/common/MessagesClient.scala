@@ -30,10 +30,11 @@ trait MessagesClient[F[_]] {
 }
 
 object MessagesClient {
+
   def create[F[_]: Sync: Timer](client: Client[F]): MessagesClient[F] =
     new Impl[F](client)
 
-  private final class Impl[F[_]: Sync: Timer](client: Client[F]) extends MessagesClient[F] {
+  final private class Impl[F[_]: Sync: Timer](client: Client[F]) extends MessagesClient[F] {
 
     def publishPreKeyBundle(bundle: PreKeyBundle): F[Unit] = {
       val string = PreKeyBundleForClient(
@@ -47,100 +48,135 @@ object MessagesClient {
         bundle.getIdentityKey.serialize()
       ).asJson.noSpaces
       client
-        .expect[Unit](Request[F](Method.POST, Uri.unsafeFromString("http://0.0.0.0:8081/publishPreKeys"), headers =
-          Headers.of(
-            Header("preKeyBundle", string)
+        .expect[Unit](
+          Request[F](
+            Method.POST,
+            Uri.unsafeFromString("http://0.0.0.0:8081/publishPreKeys"),
+            headers = Headers.of(
+              Header("preKeyBundle", string)
+            )
           )
-        ))
+        )
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in publishPreKeyBundle: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in publishPreKeyBundle: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => publishPreKeyBundle(bundle))
+
+          publishPreKeyBundle(bundle)
         }
-}
+    }
 
     def fetchPreKeyBundle: F[PreKeyBundleForClient] =
-      client.expect[PreKeyBundleForClient](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/fetchPreKeys")))
+      client
+        .expect[PreKeyBundleForClient](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/fetchPreKeys")))
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in fetchPreKeyBundle: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in fetchPreKeyBundle: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => fetchPreKeyBundle)
+
+          fetchPreKeyBundle
         }
 
     def sendInitialMessage(message: InitialMessage): F[Unit] =
       client
-      .expect[Unit](Request[F](Method.POST, Uri.unsafeFromString("http://0.0.0.0:8081/sendInitialMessage"), headers =
-        Headers.of(
-          Header("initialMessage", message.asJson.noSpaces)
+        .expect[Unit](
+          Request[F](
+            Method.POST,
+            Uri.unsafeFromString("http://0.0.0.0:8081/sendInitialMessage"),
+            headers = Headers.of(
+              Header("initialMessage", message.asJson.noSpaces)
+            )
+          )
         )
-      ))
-      .handleErrorWith { err: Throwable =>
-        Sync[F].delay(println(s"Error in sendInitialMessage: ${err.getMessage}"))
-          .flatMap(_ => Timer[F].sleep(2.seconds))
-          .flatMap(_ => sendInitialMessage(message))
-      }
+        .handleErrorWith { err: Throwable =>
+          Sync[F]
+            .delay(println(s"Error in sendInitialMessage: ${err.getMessage}"))
+            .flatMap(_ => Timer[F].sleep(2.seconds))
+            .flatMap(_ => sendInitialMessage(message))
+
+          sendInitialMessage(message)
+        }
 
     def receiveInitialMessage: F[InitialMessage] =
-      client.expect[InitialMessage](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/receiveInitialMessage")))
+      client
+        .expect[InitialMessage](
+          Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/receiveInitialMessage"))
+        )
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in receiveInitialMessage: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in receiveInitialMessage: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => receiveInitialMessage)
+
+          receiveInitialMessage
         }
 
     def sendMessageToBob(message: Array[Byte]): F[Unit] = {
-    val header = Header("sendMessage", message.asJson.noSpaces)
-    //println(s"sendMessage sendMessageToBob: ${header.name} -> ${header.value}")
-    client
-      .expect[Unit](
-        Request[F](Method.POST, Uri.unsafeFromString("http://0.0.0.0:8081/sendMessageToBob"),
-          headers = Headers.of(header)
-        )
-      )
-      .handleErrorWith { err: Throwable =>
-        Sync[F].delay(println(s"Error in sendMessage: ${err.getMessage}"))
-          .flatMap(_ => Timer[F].sleep(2.seconds))
-          .flatMap(_ => sendMessageToBob(message))
-      }
-      }
-
-    def sendMessageToAlice(message: Array[Byte]): F[Unit] =
-    {
       val header = Header("sendMessage", message.asJson.noSpaces)
-      //println(s"sendMessage sendMessageToAlice: ${header.name} -> ${header.value}")
       client
         .expect[Unit](
-          Request[F](Method.POST, Uri.unsafeFromString("http://0.0.0.0:8081/sendMessageToAlice"),
+          Request[F](
+            Method.POST,
+            Uri.unsafeFromString("http://0.0.0.0:8081/sendMessageToBob"),
             headers = Headers.of(header)
           )
         )
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in sendMessage: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in sendMessage: ${err.getMessage}"))
+            .flatMap(_ => Timer[F].sleep(2.seconds))
+            .flatMap(_ => sendMessageToBob(message))
+
+          sendMessageToBob(message)
+        }
+    }
+
+    def sendMessageToAlice(message: Array[Byte]): F[Unit] = {
+      val header = Header("sendMessage", message.asJson.noSpaces)
+      client
+        .expect[Unit](
+          Request[F](
+            Method.POST,
+            Uri.unsafeFromString("http://0.0.0.0:8081/sendMessageToAlice"),
+            headers = Headers.of(header)
+          )
+        )
+        .handleErrorWith { err: Throwable =>
+          Sync[F]
+            .delay(println(s"Error in sendMessage: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => sendMessageToAlice(message))
+
+          sendMessageToAlice(message)
         }
     }
 
     def receiveMessageToBob: F[Array[Byte]] =
-      client.expect[String](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/getMessageToBob")))
-        //.flatTap(str => Sync[F].delay(println(s"Received: ${str}")))
+      client
+        .expect[String](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/getMessageToBob")))
         .map(parse(_).flatMap(_.as[Array[Byte]]).leftMap(throw _).merge)
-        //.flatTap(str => Sync[F].delay(println(s"parsed: ${str.mkString("Array(", ", ", ")")}")))
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in receiveMessage: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in receiveMessage: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => receiveMessageToBob)
+
+          receiveMessageToBob
         }
 
     def receiveMessageToAlice: F[Array[Byte]] =
-      client.expect[String](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/getMessageToAlice")))
-        //.flatTap(str => Sync[F].delay(println(s"Received: ${str}")))
+      client
+        .expect[String](Request[F](Method.GET, Uri.unsafeFromString("http://0.0.0.0:8081/getMessageToAlice")))
         .map(parse(_).flatMap(_.as[Array[Byte]]).leftMap(throw _).merge)
-        //.flatTap(str => Sync[F].delay(println(s"parsed: ${str.mkString("Array(", ", ", ")")}")))
         .handleErrorWith { err: Throwable =>
-          Sync[F].delay(println(s"Error in receiveMessage: ${err.getMessage}"))
+          Sync[F]
+            .delay(println(s"Error in receiveMessage: ${err.getMessage}"))
             .flatMap(_ => Timer[F].sleep(2.seconds))
             .flatMap(_ => receiveMessageToAlice)
+
+          receiveMessageToAlice
         }
 
   }
