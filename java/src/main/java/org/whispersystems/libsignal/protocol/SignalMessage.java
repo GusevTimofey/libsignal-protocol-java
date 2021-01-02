@@ -23,6 +23,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.MessageDigest;
 import java.text.ParseException;
+import java.util.Arrays;
 
 public class SignalMessage implements CiphertextMessage {
 
@@ -112,6 +113,10 @@ public class SignalMessage implements CiphertextMessage {
   public void verifyMac(IdentityKey senderIdentityKey, IdentityKey receiverIdentityKey, SecretKeySpec macKey)
       throws InvalidMessageException
   {
+
+    //System.out.println("Sender key " + Arrays.toString(senderIdentityKey.serialize()));
+    //System.out.println("Receiver key " + Arrays.toString(receiverIdentityKey.serialize()));
+
     byte[][] parts    = ByteUtil.split(serialized, serialized.length - MAC_LENGTH, MAC_LENGTH);
     byte[]   ourMac   = getMac(senderIdentityKey, receiverIdentityKey, macKey, parts[0]);
     byte[]   theirMac = parts[1];

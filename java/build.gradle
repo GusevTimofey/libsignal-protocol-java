@@ -41,6 +41,19 @@ sourceSets {
     }
 }
 
+tasks.withType(ScalaCompile) {
+    scalaCompileOptions.additionalParameters = [
+            "-language:postfixOps",
+            "-language:higherKinds",
+            "-language:implicitConversions",
+            "-Ymacro-annotations",
+            "-Xfatal-warnings",
+            "-unchecked",
+            "-feature",
+            "-deprecation"
+    ]
+}
+
 dependencies {
     implementation 'org.scala-lang:scala-library:2.13.3'
     compile "org.whispersystems:curve25519-java:${curve25519_version}"
@@ -49,6 +62,21 @@ dependencies {
 
     // https://mvnrepository.com/artifact/org.scorexfoundation/scrypto
     compile group: 'org.scorexfoundation', name: 'scrypto_2.13', version: '2.1.9'
+    compile group: 'org.http4s', name: 'http4s-blaze-server_2.13', version: '0.21.15'
+    compile group: 'org.http4s', name: 'http4s-dsl_2.13', version: '0.21.15'
+    compile group: 'org.http4s', name: 'http4s-circe_2.13', version: '0.21.15'
+    // https://mvnrepository.com/artifact/io.circe/circe-parser
+    compile group: 'io.circe', name: 'circe-parser_2.13', version: '0.13.0'
+    // https://mvnrepository.com/artifact/io.circe/circe-generic
+    compile group: 'io.circe', name: 'circe-generic_2.13', version: '0.12.3'
+    // https://mvnrepository.com/artifact/io.monix/monix
+    compile group: 'io.monix', name: 'monix_2.13', version: '3.3.0'
+    // https://mvnrepository.com/artifact/org.http4s/http4s-blaze-client
+    compile group: 'org.http4s', name: 'http4s-blaze-client_2.13', version: '0.21.15'
+    // https://mvnrepository.com/artifact/com.olegpy/better-monadic-for
+    compile group: 'com.olegpy', name: 'better-monadic-for_2.13', version: '0.3.1'
+    // https://mvnrepository.com/artifact/org.typelevel/kind-projector
+    compile group: 'org.typelevel', name: 'kind-projector_2.13.4', version: '0.11.2'
     testCompile ('junit:junit:3.8.2')
 }
 
