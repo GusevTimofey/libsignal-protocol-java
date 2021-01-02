@@ -6,7 +6,10 @@
 
 package org.whispersystems.libsignal.ecc;
 
+import java.security.PrivateKey;
+
 public interface ECPrivateKey {
   public byte[] serialize();
   public int getType();
+  public PrivateKey key();
 }

@@ -25,6 +25,11 @@ import org.whispersystems.libsignal.state.SignedPreKeyStore;
 import org.whispersystems.libsignal.util.Medium;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
+
 /**
  * SessionBuilder is responsible for setting up encrypted sessions.
  * Once a session has been established, {@link org.whispersystems.libsignal.SessionCipher}
@@ -162,7 +167,7 @@ public class SessionBuilder {
    *                                                                  {@link IdentityKey} is not
    *                                                                  trusted.
    */
-  public void process(PreKeyBundle preKey) throws InvalidKeyException, UntrustedIdentityException {
+  public void process(PreKeyBundle preKey) throws InvalidKeyException, UntrustedIdentityException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, java.security.InvalidKeyException, SignatureException {
     synchronized (SessionCipher.SESSION_LOCK) {
       if (!identityKeyStore.isTrustedIdentity(remoteAddress, preKey.getIdentityKey(), IdentityKeyStore.Direction.SENDING)) {
         throw new UntrustedIdentityException(remoteAddress.getName(), preKey.getIdentityKey());
@@ -181,7 +186,7 @@ public class SessionBuilder {
       }
 
       SessionRecord         sessionRecord        = sessionStore.loadSession(remoteAddress);
-      ECKeyPair             ourBaseKey           = Curve.generateKeyPair();
+      ECKeyPair             ourBaseKey           = Curve.generateKeyPair(); //Alice's EK
       ECPublicKey           theirSignedPreKey    = preKey.getSignedPreKey();
       Optional<ECPublicKey> theirOneTimePreKey   = Optional.fromNullable(preKey.getPreKey());
       Optional<Integer>     theirOneTimePreKeyId = theirOneTimePreKey.isPresent() ? Optional.of(preKey.getPreKeyId()) :
@@ -200,7 +205,9 @@ public class SessionBuilder {
 
       RatchetingSession.initializeSession(sessionRecord.getSessionState(), parameters.create());
 
-      sessionRecord.getSessionState().setUnacknowledgedPreKeyMessage(theirOneTimePreKeyId, preKey.getSignedPreKeyId(), ourBaseKey.getPublicKey());
+      sessionRecord.getSessionState().setUnacknowledgedPreKeyMessage(
+              theirOneTimePreKeyId, preKey.getSignedPreKeyId(), ourBaseKey.getPublicKey()
+      );
       sessionRecord.getSessionState().setLocalRegistrationId(identityKeyStore.getLocalRegistrationId());
       sessionRecord.getSessionState().setRemoteRegistrationId(preKey.getRegistrationId());
       sessionRecord.getSessionState().setAliceBaseKey(ourBaseKey.getPublicKey().serialize());

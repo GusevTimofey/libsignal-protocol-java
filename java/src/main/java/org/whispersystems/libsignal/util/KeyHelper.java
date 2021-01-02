@@ -8,6 +8,8 @@ package org.whispersystems.libsignal.util;
 import com.google.common.primitives.Ints;
 import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
 import org.bouncycastle.crypto.prng.DigestRandomGenerator;
+import org.bouncycastle.jcajce.provider.digest.GOST3411;
+import org.bouncycastle.jcajce.provider.digest.Skein;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -16,6 +18,11 @@ import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SecureRandom;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -106,8 +113,7 @@ public class KeyHelper {
    * @throws InvalidKeyException when the provided identity key is invalid
    */
   public static SignedPreKeyRecord generateSignedPreKey(IdentityKeyPair identityKeyPair, int signedPreKeyId)
-      throws InvalidKeyException
-  {
+          throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, java.security.InvalidKeyException, SignatureException {
     ECKeyPair keyPair   = Curve.generateKeyPair();
     byte[]    signature = Curve.calculateSignature(identityKeyPair.getPrivateKey(), keyPair.getPublicKey().serialize());
 

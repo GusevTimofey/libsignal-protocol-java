@@ -9,14 +9,22 @@ package org.whispersystems.libsignal.ecc;
 import org.whispersystems.libsignal.util.ByteUtil;
 
 import java.math.BigInteger;
+import java.security.PublicKey;
 import java.util.Arrays;
 
 public class DjbECPublicKey implements ECPublicKey {
 
   private final byte[] publicKey;
 
+  public PublicKey publicKeyElem;
+
   DjbECPublicKey(byte[] publicKey) {
     this.publicKey = publicKey;
+  }
+
+  DjbECPublicKey(PublicKey publicKey) {
+    this.publicKey = publicKey.getEncoded();
+    this.publicKeyElem = publicKey;
   }
 
   @Override
@@ -28,6 +36,11 @@ public class DjbECPublicKey implements ECPublicKey {
   @Override
   public int getType() {
     return Curve.DJB_TYPE;
+  }
+
+  @Override
+  public PublicKey publicKeyElem() {
+    return publicKeyElem;
   }
 
   @Override

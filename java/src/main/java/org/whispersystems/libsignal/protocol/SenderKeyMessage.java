@@ -16,6 +16,10 @@ import org.whispersystems.libsignal.ecc.ECPrivateKey;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.ByteUtil;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
 public class SenderKeyMessage implements CiphertextMessage {
@@ -103,13 +107,23 @@ public class SenderKeyMessage implements CiphertextMessage {
 
     } catch (InvalidKeyException e) {
       throw new InvalidMessageException(e);
+    } catch (NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    } catch (java.security.InvalidKeyException e) {
+      e.printStackTrace();
+    } catch (SignatureException e) {
+      e.printStackTrace();
+    } catch (NoSuchProviderException e) {
+      e.printStackTrace();
+    } catch (InvalidKeySpecException e) {
+      e.printStackTrace();
     }
   }
 
   private byte[] getSignature(ECPrivateKey signatureKey, byte[] serialized) {
     try {
       return Curve.calculateSignature(signatureKey, serialized);
-    } catch (InvalidKeyException e) {
+    } catch (InvalidKeyException | NoSuchProviderException | NoSuchAlgorithmException | InvalidKeySpecException | java.security.InvalidKeyException | SignatureException e) {
       throw new AssertionError(e);
     }
   }

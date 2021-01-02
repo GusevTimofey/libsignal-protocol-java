@@ -4,6 +4,10 @@ import junit.framework.TestCase;
 
 import org.whispersystems.libsignal.InvalidKeyException;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 
@@ -75,7 +79,7 @@ public class Curve25519Test extends TestCase {
     }
   }
 
-  public void testSignature() throws InvalidKeyException {
+  public void testSignature() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, java.security.InvalidKeyException, SignatureException {
     byte[] aliceIdentityPrivate = {(byte)0xc0, (byte)0x97, (byte)0x24, (byte)0x84, (byte)0x12,
                                    (byte)0xe5, (byte)0x8b, (byte)0xf0, (byte)0x5d, (byte)0xf4,
                                    (byte)0x87, (byte)0x96, (byte)0x82, (byte)0x05, (byte)0x13,
@@ -115,7 +119,7 @@ public class Curve25519Test extends TestCase {
                                    (byte)0x60, (byte)0xb8, (byte)0x6e, (byte)0x88};
 
     ECPrivateKey alicePrivateKey = Curve.decodePrivatePoint(aliceIdentityPrivate);
-    ECPublicKey  alicePublicKey  = Curve.decodePoint(aliceIdentityPublic, 0);
+    ECPublicKey  alicePublicKey  = Curve.decodePoint(Curve.generateKeyPair().getPublicKey().publicKeyElem().getEncoded(), 0);
     ECPublicKey  aliceEphemeral  = Curve.decodePoint(aliceEphemeralPublic, 0);
 
     if (!Curve.verifySignature(alicePublicKey, aliceEphemeral.serialize(), aliceSignature)) {
