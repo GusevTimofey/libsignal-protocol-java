@@ -288,7 +288,7 @@ public class SessionState {
         BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
         Security.addProvider(bouncyCastleProvider);
         result = new MessageKeys(new SecretKeySpec(messageKey.getCipherKey().toByteArray(), "GOST3412-2015"),
-                                 new SecretKeySpec(messageKey.getMacKey().toByteArray(), "HmacSHA256"),
+                                 new SecretKeySpec(messageKey.getMacKey().toByteArray(), "GOST3412MAC"),
                                  new IvParameterSpec(messageKey.getIv().toByteArray()),
                                  messageKey.getIndex());
 

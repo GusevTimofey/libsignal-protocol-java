@@ -33,7 +33,7 @@ public class DerivedMessageSecrets {
       BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
       Security.addProvider(bouncyCastleProvider);
       this.cipherKey = new SecretKeySpec(keys[0], "GOST3412-2015");
-      this.macKey    = new SecretKeySpec(keys[1], "HmacSHA256");
+      this.macKey    = new SecretKeySpec(keys[1], "GOST3412MAC");
       this.iv        = new IvParameterSpec(keys[2]);
     } catch (ParseException e) {
       throw new AssertionError(e);
