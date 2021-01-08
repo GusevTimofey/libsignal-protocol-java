@@ -68,7 +68,7 @@ public class SenderKeyDistributionMessage implements CiphertextMessage {
       this.iteration    = distributionMessage.getIteration();
       this.chainKey     = distributionMessage.getChainKey().toByteArray();
       this.signatureKey = Curve.decodePoint(distributionMessage.getSigningKey().toByteArray(), 0);
-    } catch (InvalidProtocolBufferException | InvalidKeyException e) {
+    } catch (InvalidProtocolBufferException e) {
       throw new InvalidMessageException(e);
     }
   }

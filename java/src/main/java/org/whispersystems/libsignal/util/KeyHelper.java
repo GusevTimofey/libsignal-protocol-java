@@ -36,16 +36,9 @@ public class KeyHelper {
    * @return the generated IdentityKeyPair.
    */
   public static IdentityKeyPair generateIdentityKeyPair() {
-    System.out.println("== Generate IKa ==");
     ECKeyPair   keyPair   = Curve.generateKeyPair();
-    System.out.println("== Finish Generate IKa ==");
-    System.out.println("qwe:" + Arrays.toString(keyPair.getPublicKey().serialize()));
     IdentityKey publicKey = new IdentityKey(keyPair.getPublicKey());
-    System.out.println("~~IK111: " + Arrays.toString(publicKey.serialize()) + " ~~~~" );
-    System.out.println("~~IK111: " + Arrays.toString(publicKey.getPublicKey().serialize()) + " ~~~~" );
-    IdentityKeyPair kp = new IdentityKeyPair(publicKey, keyPair.getPrivateKey());
-    System.out.println("~~IK222: " + Arrays.toString(kp.getPublicKey().serialize()) + " ~~~~" );
-    return kp;
+    return new IdentityKeyPair(publicKey, keyPair.getPrivateKey());
   }
 
   /**

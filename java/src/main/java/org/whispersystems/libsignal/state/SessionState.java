@@ -138,11 +138,7 @@ public class SessionState {
   }
 
   public ECPublicKey getSenderRatchetKey() {
-    try {
-      return Curve.decodePoint(sessionStructure.getSenderChain().getSenderRatchetKey().toByteArray(), 0);
-    } catch (InvalidKeyException e) {
-      throw new AssertionError(e);
-    }
+    return Curve.decodePoint(sessionStructure.getSenderChain().getSenderRatchetKey().toByteArray(), 0);
   }
 
   public ECKeyPair getSenderRatchetKeyPair() {
@@ -167,15 +163,11 @@ public class SessionState {
     int         index          = 0;
 
     for (Chain receiverChain : receiverChains) {
-      try {
         ECPublicKey chainSenderRatchetKey = Curve.decodePoint(receiverChain.getSenderRatchetKey().toByteArray(), 0);
 
         if (chainSenderRatchetKey.equals(senderEphemeral)) {
           return new Pair<>(receiverChain,index);
         }
-      } catch (InvalidKeyException e) {
-        Log.w("SessionRecordV2", e);
-      }
 
       index++;
     }
@@ -427,7 +419,6 @@ public class SessionState {
   }
 
   public UnacknowledgedPreKeyMessageItems getUnacknowledgedPreKeyMessageItems() {
-    try {
       Optional<Integer> preKeyId;
 
       if (sessionStructure.getPendingPreKey().hasPreKeyId()) {
@@ -442,9 +433,6 @@ public class SessionState {
                                                Curve.decodePoint(sessionStructure.getPendingPreKey()
                                                                                  .getBaseKey()
                                                                                  .toByteArray(), 0));
-    } catch (InvalidKeyException e) {
-      throw new AssertionError(e);
-    }
   }
 
   public void clearUnacknowledgedPreKeyMessage() {

@@ -168,7 +168,6 @@ public class SessionBuilder {
         throw new UntrustedIdentityException(remoteAddress.getName(), preKey.getIdentityKey());
       }
 
-      System.out.println("Process function!");
       if (preKey.getSignedPreKey() != null &&
           !Curve.verifySignature(preKey.getIdentityKey().getPublicKey(),
                                  preKey.getSignedPreKey().serialize(),

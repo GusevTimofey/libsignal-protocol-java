@@ -66,7 +66,7 @@ public class SignalMessage implements CiphertextMessage {
       this.counter          = whisperMessage.getCounter();
       this.previousCounter  = whisperMessage.getPreviousCounter();
       this.ciphertext       = whisperMessage.getCiphertext().toByteArray();
-    } catch (InvalidProtocolBufferException | InvalidKeyException | ParseException e) {
+    } catch (InvalidProtocolBufferException  | ParseException e) {
       throw new InvalidMessageException(e);
     }
   }
@@ -113,9 +113,6 @@ public class SignalMessage implements CiphertextMessage {
   public void verifyMac(IdentityKey senderIdentityKey, IdentityKey receiverIdentityKey, SecretKeySpec macKey)
       throws InvalidMessageException
   {
-
-    //System.out.println("Sender key " + Arrays.toString(senderIdentityKey.serialize()));
-    //System.out.println("Receiver key " + Arrays.toString(receiverIdentityKey.serialize()));
 
     byte[][] parts    = ByteUtil.split(serialized, serialized.length - MAC_LENGTH, MAC_LENGTH);
     byte[]   ourMac   = getMac(senderIdentityKey, receiverIdentityKey, macKey, parts[0]);

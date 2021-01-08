@@ -114,8 +114,6 @@ public class NumericFingerprintGenerator implements FingerprintGenerator {
         hash = result;
       }
 
-      System.out.println("This is hash result:" + hash.length);
-
       return hash;
     } catch (Throwable e) {
       throw new AssertionError(e);
