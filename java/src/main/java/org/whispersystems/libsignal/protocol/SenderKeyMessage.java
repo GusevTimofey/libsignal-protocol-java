@@ -97,6 +97,7 @@ public class SenderKeyMessage implements CiphertextMessage {
     try {
       byte[][] parts    = ByteUtil.split(serialized, serialized.length - SIGNATURE_LENGTH, SIGNATURE_LENGTH);
 
+      System.out.println("Session builder");
       if (!Curve.verifySignature(signatureKey, parts[0], parts[1])) {
         throw new InvalidMessageException("Invalid signature!");
       }
