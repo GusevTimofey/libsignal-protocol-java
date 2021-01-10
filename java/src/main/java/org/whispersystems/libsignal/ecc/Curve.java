@@ -39,11 +39,10 @@ public class Curve {
     return Curve25519.getInstance(BEST).isNative();
   }
 
-  private static final String ECParamsSet = "Tc26-Gost-3410-12-256-paramSetA";
 
   public static ECKeyPair generateKeyPair() {
     KeyPairGeneratorSpi ECGOST3410 = new KeyPairGeneratorSpi();
-    GOST3410ParameterSpec paramSpec = new GOST3410ParameterSpec(ECParamsSet);
+    GOST3410ParameterSpec paramSpec = new GOST3410ParameterSpec("Tc26-Gost-3410-12-256-paramSetA");
 
     try {
       ECGOST3410.initialize(paramSpec, SecureRandom.getInstanceStrong());
@@ -80,7 +79,7 @@ public class Curve {
 
     ECVKOAgreement vkoAgreement = new ECVKOAgreement(new GOST3411_2012_256Digest());
 
-    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName(ECParamsSet);
+    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName("Tc26-Gost-3410-12-256-paramSetA");
     ECPrivateKeyParameters privateKeyParams = new ECPrivateKeyParameters(
             new BigInteger(privateKey.serialize()),
             ecParams
@@ -102,7 +101,7 @@ public class Curve {
     ECGOST3410_2012Signer signer = new ECGOST3410_2012Signer();
     GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
 
-    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName(ECParamsSet);
+    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName("Tc26-Gost-3410-12-256-paramSetA");
     ECPublicKeyParameters privateKeyParams = new ECPublicKeyParameters(
             ecParams.getCurve().decodePoint(signingKey.serialize()),
             ecParams
@@ -125,7 +124,7 @@ public class Curve {
     ECGOST3410_2012Signer signer = new ECGOST3410_2012Signer();
     GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
 
-    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName(ECParamsSet);
+    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName("Tc26-Gost-3410-12-256-paramSetA");
     ECPrivateKeyParameters privateKeyParams = new ECPrivateKeyParameters(
             new BigInteger(signingKey.serialize()),
             ecParams
@@ -144,7 +143,7 @@ public class Curve {
     ECGOST3410_2012Signer signer = new ECGOST3410_2012Signer();
     GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
 
-    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName(ECParamsSet);
+    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName("Tc26-Gost-3410-12-256-paramSetA");
     ECPrivateKeyParameters privateKeyParams = new ECPrivateKeyParameters(
             new BigInteger(signingKey.serialize()),
             ecParams
@@ -163,7 +162,7 @@ public class Curve {
     ECGOST3410_2012Signer signer = new ECGOST3410_2012Signer();
     GOST3411_2012_256Digest digest = new GOST3411_2012_256Digest();
 
-    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName(ECParamsSet);
+    ECDomainParameters ecParams = ECGOST3410NamedCurves.getByName("Tc26-Gost-3410-12-256-paramSetA");
     ECPublicKeyParameters privateKeyParams = new ECPublicKeyParameters(
             ecParams.getCurve().decodePoint(signingKey.serialize()),
             ecParams
