@@ -9,6 +9,7 @@ package org.whispersystems.libsignal.state;
 
 import com.google.protobuf.ByteString;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -27,6 +28,7 @@ import org.whispersystems.libsignal.state.StorageProtos.SessionStructure.Pending
 import org.whispersystems.libsignal.util.Pair;
 import org.whispersystems.libsignal.util.guava.Optional;
 
+import java.security.Security;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -136,11 +138,7 @@ public class SessionState {
   }
 
   public ECPublicKey getSenderRatchetKey() {
-    try {
-      return Curve.decodePoint(sessionStructure.getSenderChain().getSenderRatchetKey().toByteArray(), 0);
-    } catch (InvalidKeyException e) {
-      throw new AssertionError(e);
-    }
+    return Curve.decodePoint(sessionStructure.getSenderChain().getSenderRatchetKey().toByteArray(), 0);
   }
 
   public ECKeyPair getSenderRatchetKeyPair() {
@@ -165,15 +163,11 @@ public class SessionState {
     int         index          = 0;
 
     for (Chain receiverChain : receiverChains) {
-      try {
         ECPublicKey chainSenderRatchetKey = Curve.decodePoint(receiverChain.getSenderRatchetKey().toByteArray(), 0);
 
         if (chainSenderRatchetKey.equals(senderEphemeral)) {
           return new Pair<>(receiverChain,index);
         }
-      } catch (InvalidKeyException e) {
-        Log.w("SessionRecordV2", e);
-      }
 
       index++;
     }
@@ -283,8 +277,10 @@ public class SessionState {
       Chain.MessageKey messageKey = messageKeyIterator.next();
 
       if (messageKey.getIndex() == counter) {
-        result = new MessageKeys(new SecretKeySpec(messageKey.getCipherKey().toByteArray(), "AES"),
-                                 new SecretKeySpec(messageKey.getMacKey().toByteArray(), "HmacSHA256"),
+        BouncyCastleProvider bouncyCastleProvider = new BouncyCastleProvider();
+        Security.addProvider(bouncyCastleProvider);
+        result = new MessageKeys(new SecretKeySpec(messageKey.getCipherKey().toByteArray(), "GOST3412-2015"),
+                                 new SecretKeySpec(messageKey.getMacKey().toByteArray(), "GOST3412MAC"),
                                  new IvParameterSpec(messageKey.getIv().toByteArray()),
                                  messageKey.getIndex());
 
@@ -423,7 +419,6 @@ public class SessionState {
   }
 
   public UnacknowledgedPreKeyMessageItems getUnacknowledgedPreKeyMessageItems() {
-    try {
       Optional<Integer> preKeyId;
 
       if (sessionStructure.getPendingPreKey().hasPreKeyId()) {
@@ -438,9 +433,6 @@ public class SessionState {
                                                Curve.decodePoint(sessionStructure.getPendingPreKey()
                                                                                  .getBaseKey()
                                                                                  .toByteArray(), 0));
-    } catch (InvalidKeyException e) {
-      throw new AssertionError(e);
-    }
   }
 
   public void clearUnacknowledgedPreKeyMessage() {

@@ -480,6 +480,7 @@ public class SimultaneousInitiateTests extends TestCase {
                                                     bobSignature, bobStore.getIdentityKeyPair().getPublicKey());
 
     bobStore.storeSignedPreKey(bobSignedPreKeyId, new SignedPreKeyRecord(bobSignedPreKeyId, System.currentTimeMillis(), bobSignedPreKey, bobSignature));
+
     bobStore.storePreKey(bobUnsignedPreKeyId, new PreKeyRecord(bobUnsignedPreKeyId, bobUnsignedPreKey));
 
     return bobPreKeyBundle;

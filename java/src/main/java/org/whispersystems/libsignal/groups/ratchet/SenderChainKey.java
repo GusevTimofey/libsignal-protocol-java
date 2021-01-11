@@ -5,8 +5,10 @@
  */
 package org.whispersystems.libsignal.groups.ratchet;
 
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -52,11 +54,13 @@ public class SenderChainKey {
 
   private byte[] getDerivative(byte[] seed, byte[] key) {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(key, "HmacSHA256"));
-
-      return mac.doFinal(seed);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(key));
+      mac.update(seed, 0, seed.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return result;
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

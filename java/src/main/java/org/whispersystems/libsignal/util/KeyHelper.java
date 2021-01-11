@@ -5,6 +5,9 @@
  */
 package org.whispersystems.libsignal.util;
 
+import com.google.common.primitives.Ints;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.prng.DigestRandomGenerator;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.IdentityKeyPair;
 import org.whispersystems.libsignal.InvalidKeyException;
@@ -13,8 +16,7 @@ import org.whispersystems.libsignal.ecc.ECKeyPair;
 import org.whispersystems.libsignal.state.PreKeyRecord;
 import org.whispersystems.libsignal.state.SignedPreKeyRecord;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,21 +53,24 @@ public class KeyHelper {
    * @return the generated registration ID.
    */
   public static int generateRegistrationId(boolean extendedRange) {
-    try {
-      SecureRandom secureRandom = SecureRandom.getInstance("SHA1PRNG");
-      if (extendedRange) return secureRandom.nextInt(Integer.MAX_VALUE - 1) + 1;
-      else               return secureRandom.nextInt(16380) + 1;
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+    DigestRandomGenerator rng = new DigestRandomGenerator(new GOST3411_2012_256Digest());
+    byte[] result;
+    if (extendedRange){
+        result = new byte[32];
+      }
+      else {
+        result = new byte[4];
+      }
+    rng.nextBytes(result);
+    return Ints.fromByteArray(result) + 1;
   }
 
   public static int getRandomSequence(int max) {
-    try {
-      return SecureRandom.getInstance("SHA1PRNG").nextInt(max);
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+    DigestRandomGenerator rng = new DigestRandomGenerator(new GOST3411_2012_256Digest());
+    int size = Ints.toByteArray(max).length;
+    byte[] result = new byte[size];
+    rng.nextBytes(result);
+    return Ints.fromByteArray(result);
   }
 
   /**
@@ -116,22 +121,17 @@ public class KeyHelper {
   }
 
   public static byte[] generateSenderKey() {
-    try {
-      byte[] key = new byte[32];
-      SecureRandom.getInstance("SHA1PRNG").nextBytes(key);
-
-      return key;
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+    DigestRandomGenerator rng = new DigestRandomGenerator(new GOST3411_2012_256Digest());
+    byte[] key = new byte[32];
+    rng.nextBytes(key);
+    return key;
   }
 
   public static int generateSenderKeyId() {
-    try {
-      return SecureRandom.getInstance("SHA1PRNG").nextInt(Integer.MAX_VALUE);
-    } catch (NoSuchAlgorithmException e) {
-      throw new AssertionError(e);
-    }
+    DigestRandomGenerator rng = new DigestRandomGenerator(new GOST3411_2012_256Digest());
+    byte[] result = new byte[32];
+    rng.nextBytes(result);
+    return Ints.fromByteArray(result);
   }
 
 }

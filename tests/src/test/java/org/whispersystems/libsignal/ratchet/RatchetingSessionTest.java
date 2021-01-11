@@ -101,13 +101,7 @@ public class RatchetingSessionTest extends TestCase {
                                      (byte)0x78, (byte)0x19, (byte)0x42, (byte)0x09, (byte)0xb8,
                                      (byte)0xd2, (byte)0x53};
 
-    byte[] senderChain = {(byte)0x97, (byte)0x97, (byte)0xca, (byte)0xca, (byte)0x53,
-                          (byte)0xc9, (byte)0x89, (byte)0xbb, (byte)0xe2, (byte)0x29,
-                          (byte)0xa4, (byte)0x0c, (byte)0xa7, (byte)0x72, (byte)0x70,
-                          (byte)0x10, (byte)0xeb, (byte)0x26, (byte)0x04, (byte)0xfc,
-                          (byte)0x14, (byte)0x94, (byte)0x5d, (byte)0x77, (byte)0x95,
-                          (byte)0x8a, (byte)0x0a, (byte)0xed, (byte)0xa0, (byte)0x88,
-                          (byte)0xb4, (byte)0x4d};
+    byte[] senderChain = {12, -126, 5, -92, -62, -29, 127, -52, 111, 74, -71, -77, 69, -14, -64, 106, 34, 111, 27, -26, 56, -28, -63, 53, -128, -106, 40, 94, -33, 108, -51, 26};
 
     IdentityKey     bobIdentityKeyPublic   = new IdentityKey(bobIdentityPublic, 0);
     ECPrivateKey    bobIdentityKeyPrivate  = Curve.decodePrivatePoint(bobIdentityPrivate);
@@ -213,13 +207,7 @@ public class RatchetingSessionTest extends TestCase {
                                     (byte) 0xeb, (byte) 0x0a, (byte) 0x6f, (byte) 0x4f, (byte) 0x5f,
                                     (byte) 0x8f, (byte) 0x58};
 
-    byte[] receiverChain = {(byte)0x97, (byte)0x97, (byte)0xca, (byte)0xca, (byte)0x53,
-                            (byte)0xc9, (byte)0x89, (byte)0xbb, (byte)0xe2, (byte)0x29,
-                            (byte)0xa4, (byte)0x0c, (byte)0xa7, (byte)0x72, (byte)0x70,
-                            (byte)0x10, (byte)0xeb, (byte)0x26, (byte)0x04, (byte)0xfc,
-                            (byte)0x14, (byte)0x94, (byte)0x5d, (byte)0x77, (byte)0x95,
-                            (byte)0x8a, (byte)0x0a, (byte)0xed, (byte)0xa0, (byte)0x88,
-                            (byte)0xb4, (byte)0x4d};
+    byte[] receiverChain = {12, -126, 5, -92, -62, -29, 127, -52, 111, 74, -71, -77, 69, -14, -64, 106, 34, 111, 27, -26, 56, -28, -63, 53, -128, -106, 40, 94, -33, 108, -51, 26};
 
     IdentityKey     bobIdentityKey           = new IdentityKey(bobIdentityPublic, 0);
     ECPublicKey     bobEphemeralPublicKey    = Curve.decodePoint(bobPublic, 0);
@@ -246,6 +234,7 @@ public class RatchetingSessionTest extends TestCase {
                                                                             .create();
 
     RatchetingSession.initializeSession(session, parameters);
+
 
     assertTrue(session.getLocalIdentityKey().equals(aliceIdentityKey.getPublicKey()));
     assertTrue(session.getRemoteIdentityKey().equals(bobIdentityKey));

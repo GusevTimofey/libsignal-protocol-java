@@ -40,14 +40,10 @@ public class PreKeyRecord {
   }
 
   public ECKeyPair getKeyPair() {
-    try {
       ECPublicKey publicKey = Curve.decodePoint(this.structure.getPublicKey().toByteArray(), 0);
       ECPrivateKey privateKey = Curve.decodePrivatePoint(this.structure.getPrivateKey().toByteArray());
 
       return new ECKeyPair(publicKey, privateKey);
-    } catch (InvalidKeyException e) {
-      throw new AssertionError(e);
-    }
   }
 
   public byte[] serialize() {

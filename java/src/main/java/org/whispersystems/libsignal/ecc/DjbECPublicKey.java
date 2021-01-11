@@ -22,7 +22,7 @@ public class DjbECPublicKey implements ECPublicKey {
   @Override
   public byte[] serialize() {
     byte[] type = {Curve.DJB_TYPE};
-    return ByteUtil.combine(type, publicKey);
+    return publicKey;
   }
 
   @Override

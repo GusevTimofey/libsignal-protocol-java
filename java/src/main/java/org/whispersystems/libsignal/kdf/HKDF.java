@@ -6,12 +6,16 @@
 
 package org.whispersystems.libsignal.kdf;
 
-import java.io.ByteArrayOutputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.ByteArrayOutputStream;
+import java.util.Arrays;
+import java.util.Collections;
 
 public abstract class HKDF {
 
@@ -37,10 +41,13 @@ public abstract class HKDF {
 
   private byte[] extract(byte[] salt, byte[] inputKeyMaterial) {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(new SecretKeySpec(salt, "HmacSHA256"));
-      return mac.doFinal(inputKeyMaterial);
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(salt));
+      mac.update(inputKeyMaterial, 0, inputKeyMaterial.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return result;
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }
@@ -48,21 +55,24 @@ public abstract class HKDF {
   private byte[] expand(byte[] prk, byte[] info, int outputSize) {
     try {
       int                   iterations     = (int) Math.ceil((double) outputSize / (double) HASH_OUTPUT_SIZE);
-      byte[]                mixin          = new byte[0];
       ByteArrayOutputStream results        = new ByteArrayOutputStream();
+      byte[]                mixin          = new byte[0];
       int                   remainingBytes = outputSize;
 
       for (int i= getIterationStartOffset();i<iterations + getIterationStartOffset();i++) {
-        Mac mac = Mac.getInstance("HmacSHA256");
-        mac.init(new SecretKeySpec(prk, "HmacSHA256"));
+        HMac mac = new HMac(new GOST3411_2012_256Digest());
+        mac.init(new KeyParameter(prk));
+        mac.update(mixin, 0, mixin.length);
 
-        mac.update(mixin);
         if (info != null) {
-          mac.update(info);
+          mac.update(info, 0, info.length);
         }
+
         mac.update((byte)i);
 
-        byte[] stepResult = mac.doFinal();
+        byte[] stepResult = new byte[32];
+        mac.doFinal(stepResult, 0);
+
         int    stepSize   = Math.min(remainingBytes, stepResult.length);
 
         results.write(stepResult, 0, stepSize);
@@ -72,7 +82,7 @@ public abstract class HKDF {
       }
 
       return results.toByteArray();
-    } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

@@ -7,7 +7,10 @@ package org.whispersystems.libsignal.protocol;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.macs.HMac;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.whispersystems.libsignal.IdentityKey;
 import org.whispersystems.libsignal.InvalidKeyException;
 import org.whispersystems.libsignal.InvalidMessageException;
@@ -16,12 +19,11 @@ import org.whispersystems.libsignal.ecc.Curve;
 import org.whispersystems.libsignal.ecc.ECPublicKey;
 import org.whispersystems.libsignal.util.ByteUtil;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.text.ParseException;
-
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.text.ParseException;
+import java.util.Arrays;
 
 public class SignalMessage implements CiphertextMessage {
 
@@ -64,7 +66,7 @@ public class SignalMessage implements CiphertextMessage {
       this.counter          = whisperMessage.getCounter();
       this.previousCounter  = whisperMessage.getPreviousCounter();
       this.ciphertext       = whisperMessage.getCiphertext().toByteArray();
-    } catch (InvalidProtocolBufferException | InvalidKeyException | ParseException e) {
+    } catch (InvalidProtocolBufferException  | ParseException e) {
       throw new InvalidMessageException(e);
     }
   }
@@ -111,6 +113,7 @@ public class SignalMessage implements CiphertextMessage {
   public void verifyMac(IdentityKey senderIdentityKey, IdentityKey receiverIdentityKey, SecretKeySpec macKey)
       throws InvalidMessageException
   {
+
     byte[][] parts    = ByteUtil.split(serialized, serialized.length - MAC_LENGTH, MAC_LENGTH);
     byte[]   ourMac   = getMac(senderIdentityKey, receiverIdentityKey, macKey, parts[0]);
     byte[]   theirMac = parts[1];
@@ -125,15 +128,15 @@ public class SignalMessage implements CiphertextMessage {
                         SecretKeySpec macKey, byte[] serialized)
   {
     try {
-      Mac mac = Mac.getInstance("HmacSHA256");
-      mac.init(macKey);
-
-      mac.update(senderIdentityKey.getPublicKey().serialize());
-      mac.update(receiverIdentityKey.getPublicKey().serialize());
-
-      byte[] fullMac = mac.doFinal(serialized);
-      return ByteUtil.trim(fullMac, MAC_LENGTH);
-    } catch (NoSuchAlgorithmException | java.security.InvalidKeyException e) {
+      HMac mac = new HMac(new GOST3411_2012_256Digest());
+      mac.init(new KeyParameter(macKey.getEncoded()));
+      mac.update(senderIdentityKey.getPublicKey().serialize(), 0, senderIdentityKey.getPublicKey().serialize().length);
+      mac.update(receiverIdentityKey.getPublicKey().serialize(), 0, receiverIdentityKey.getPublicKey().serialize().length);
+      mac.update(serialized, 0, serialized.length);
+      byte[] result = new byte[32];
+      mac.doFinal(result, 0);
+      return ByteUtil.trim(result, MAC_LENGTH);
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

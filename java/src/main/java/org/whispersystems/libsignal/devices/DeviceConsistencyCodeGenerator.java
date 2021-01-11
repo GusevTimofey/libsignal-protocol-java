@@ -1,10 +1,10 @@
 package org.whispersystems.libsignal.devices;
 
+import org.bouncycastle.crypto.digests.GOST3411_2012_256Digest;
+import org.bouncycastle.crypto.digests.GOST3411_2012_512Digest;
 import org.whispersystems.libsignal.util.ByteArrayComparator;
 import org.whispersystems.libsignal.util.ByteUtil;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,20 +21,27 @@ public class DeviceConsistencyCodeGenerator {
       ArrayList<DeviceConsistencySignature> sortedSignatures = new ArrayList<>(signatures);
       Collections.sort(sortedSignatures, new SignatureComparator());
 
-      MessageDigest messageDigest = MessageDigest.getInstance("SHA-512");
-      messageDigest.update(ByteUtil.shortToByteArray(CODE_VERSION));
-      messageDigest.update(commitment.toByteArray());
+      GOST3411_2012_512Digest digest = new GOST3411_2012_512Digest();
+
+      byte[] codeVersion = ByteUtil.shortToByteArray(CODE_VERSION);
+      byte[] commitmentBytes = commitment.toByteArray();
+
+      digest.update(codeVersion, 0, codeVersion.length);
+      digest.update(commitmentBytes, 0, commitmentBytes.length);
 
       for (DeviceConsistencySignature signature : sortedSignatures) {
-        messageDigest.update(signature.getVrfOutput());
+        byte[] signatureBytes = signature.getVrfOutput();
+        digest.update(signatureBytes, 0, signatureBytes.length);
       }
 
-      byte[] hash = messageDigest.digest();
+      byte[] hash = new byte[512];
+
+      digest.doFinal(hash, 0);
 
       String digits = getEncodedChunk(hash, 0) + getEncodedChunk(hash, 5);
       return digits.substring(0, 6);
 
-    } catch (NoSuchAlgorithmException e) {
+    } catch (Throwable e) {
       throw new AssertionError(e);
     }
   }

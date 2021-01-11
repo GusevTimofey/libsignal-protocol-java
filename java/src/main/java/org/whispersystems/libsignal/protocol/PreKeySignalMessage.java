@@ -63,7 +63,7 @@ public class PreKeySignalMessage implements CiphertextMessage {
       this.baseKey        = Curve.decodePoint(preKeyWhisperMessage.getBaseKey().toByteArray(), 0);
       this.identityKey    = new IdentityKey(Curve.decodePoint(preKeyWhisperMessage.getIdentityKey().toByteArray(), 0));
       this.message        = new SignalMessage(preKeyWhisperMessage.getMessage().toByteArray());
-    } catch (InvalidProtocolBufferException | InvalidKeyException | LegacyMessageException e) {
+    } catch (InvalidProtocolBufferException | LegacyMessageException e) {
       throw new InvalidMessageException(e);
     }
   }
